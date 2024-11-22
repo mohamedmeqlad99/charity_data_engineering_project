@@ -42,3 +42,17 @@ with open(donations_file_path, mode="w", newline="") as csv_file:
         campaign_id = fake.uuid4()
         beneficiary_id = fake.uuid4()
         writer.writerow([donation_id, donor_id, amount, donation_date, campaign_id, beneficiary_id])
+
+campaigns_file_path = os.path.join(output_dir, "campaigns.csv")
+with open(campaigns_file_path, mode="w", newline="") as csv_file:
+    writer = csv.writer(csv_file)
+    writer.writerow(["campaign_id", "campaign_name", "start_date", "end_date", "description"])
+    for _ in range(num_campaigns):
+        campaign_id = fake.uuid4()
+        campaign_name = fake.catch_phrase()
+        start_date = random_date()
+        end_date = random_date()
+        if start_date > end_date:
+            start_date, end_date = end_date, start_date
+        description = fake.text(max_nb_chars=200)
+        writer.writerow([campaign_id, campaign_name, start_date, end_date, description])
