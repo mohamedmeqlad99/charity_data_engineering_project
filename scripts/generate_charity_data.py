@@ -56,3 +56,17 @@ with open(campaigns_file_path, mode="w", newline="") as csv_file:
             start_date, end_date = end_date, start_date
         description = fake.text(max_nb_chars=200)
         writer.writerow([campaign_id, campaign_name, start_date, end_date, description])
+
+beneficiaries_file_path = os.path.join(output_dir, "beneficiaries.csv")
+with open(beneficiaries_file_path, mode="w", newline="") as csv_file:
+    writer = csv.writer(csv_file)
+    writer.writerow(["beneficiary_id", "beneficiary_name", "age", "location", "date_registered"])
+    for _ in range(num_beneficiaries):
+        beneficiary_id = fake.uuid4()
+        beneficiary_name = fake.name()
+        age = random.randint(1, 100)
+        location = fake.city()
+        date_registered = random_date()
+        writer.writerow([beneficiary_id, beneficiary_name, age, location, date_registered])
+
+print(f"Data generated successfully and saved to {output_dir}")
