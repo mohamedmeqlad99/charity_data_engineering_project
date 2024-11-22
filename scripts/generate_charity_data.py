@@ -29,3 +29,16 @@ with open(donors_file_path, mode="w", newline="") as csv_file:
         phone = fake.phone_number()
         registration_date = random_date()
         writer.writerow([donor_id, donor_name, email, phone, registration_date])
+
+donations_file_path = os.path.join(output_dir, "donations.csv")
+with open(donations_file_path, mode="w", newline="") as csv_file:
+    writer = csv.writer(csv_file)
+    writer.writerow(["donation_id", "donor_id", "amount", "donation_date", "campaign_id", "beneficiary_id"])
+    for _ in range(num_donations):
+        donation_id = fake.uuid4()
+        donor_id = fake.uuid4()
+        amount = round(random.uniform(10, 5000), 2)
+        donation_date = random_date()
+        campaign_id = fake.uuid4()
+        beneficiary_id = fake.uuid4()
+        writer.writerow([donation_id, donor_id, amount, donation_date, campaign_id, beneficiary_id])
