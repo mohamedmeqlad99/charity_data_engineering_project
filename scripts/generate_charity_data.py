@@ -1,15 +1,16 @@
 import csv
 import random
-import faker
+from faker import Faker
 import os
-from datetime import timedelta , datetime
+from datetime import datetime, timedelta
 
-fake = faker()
+fake = Faker()
 
 def random_date():
-      start_date = datetime.now() - timedelta(days=5*365)
-      random_days = random.randint(0, 5*365)
-      return (start_date + timedelta(days=random_days)).strftime("%Y-%m-%d")
+    start_date = datetime.now() - timedelta(days=5*365)
+    random_days = random.randint(0, 5*365)
+    return (start_date + timedelta(days=random_days)).strftime("%Y-%m-%d")
+
 output_dir = "/home/meqlad/pr/charity_data_engineering_project/data"
 os.makedirs(output_dir, exist_ok=True)
 
