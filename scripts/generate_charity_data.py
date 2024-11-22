@@ -19,6 +19,10 @@ num_donations = 1000
 num_campaigns = 100
 num_beneficiaries = 200
 
+donors = []
+campaigns = []
+beneficiaries = []
+
 donors_file_path = os.path.join(output_dir, "donors.csv")
 with open(donors_file_path, mode="w", newline="") as csv_file:
     writer = csv.writer(csv_file)
@@ -29,20 +33,8 @@ with open(donors_file_path, mode="w", newline="") as csv_file:
         email = fake.email()
         phone = fake.phone_number()
         registration_date = random_date()
+        donors.append(donor_id)
         writer.writerow([donor_id, donor_name, email, phone, registration_date])
-
-donations_file_path = os.path.join(output_dir, "donations.csv")
-with open(donations_file_path, mode="w", newline="") as csv_file:
-    writer = csv.writer(csv_file)
-    writer.writerow(["donation_id", "donor_id", "amount", "donation_date", "campaign_id", "beneficiary_id"])
-    for _ in range(num_donations):
-        donation_id = fake.uuid4()
-        donor_id = fake.uuid4()
-        amount = round(random.uniform(10, 5000), 2)
-        donation_date = random_date()
-        campaign_id = fake.uuid4()
-        beneficiary_id = fake.uuid4()
-        writer.writerow([donation_id, donor_id, amount, donation_date, campaign_id, beneficiary_id])
 
 campaigns_file_path = os.path.join(output_dir, "campaigns.csv")
 with open(campaigns_file_path, mode="w", newline="") as csv_file:
@@ -56,6 +48,7 @@ with open(campaigns_file_path, mode="w", newline="") as csv_file:
         if start_date > end_date:
             start_date, end_date = end_date, start_date
         description = fake.text(max_nb_chars=200)
+        campaigns.append(campaign_id)
         writer.writerow([campaign_id, campaign_name, start_date, end_date, description])
 
 beneficiaries_file_path = os.path.join(output_dir, "beneficiaries.csv")
@@ -68,6 +61,20 @@ with open(beneficiaries_file_path, mode="w", newline="") as csv_file:
         age = random.randint(1, 100)
         location = fake.city()
         date_registered = random_date()
+        beneficiaries.append(beneficiary_id)
         writer.writerow([beneficiary_id, beneficiary_name, age, location, date_registered])
+
+donations_file_path = os.path.join(output_dir, "donations.csv")
+with open(donations_file_path, mode="w", newline="") as csv_file:
+    writer = csv.writer(csv_file)
+    writer.writerow(["donation_id", "donor_id", "amount", "donation_date", "campaign_id", "beneficiary_id"])
+    for _ in range(num_donations):
+        donation_id = fake.uuid4()
+        donor_id = random.choice(donors)
+        amount = round(random.uniform(10, 5000), 2)
+        donation_date = random_date()
+        campaign_id = random.choice(campaigns)
+        beneficiary_id = random.choice(beneficiaries)
+        writer.writerow([donation_id, donor_id, amount, donation_date, campaign_id, beneficiary_id])
 
 print(f"Data generated successfully and saved to {output_dir}")
