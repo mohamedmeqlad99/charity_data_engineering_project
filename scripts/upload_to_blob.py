@@ -1,8 +1,10 @@
+from dotenv import load_dotenv
 import os
 from azure.storage.blob import BlobServiceClient, BlobClient, ContainerClient
 
+load_dotenv()
 
-connection_string = 'your_connection_string_here'
+connection_string = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
 container_name = 'raw'
 
 
