@@ -7,7 +7,7 @@
 - [x] Create an Azure Storage Account (`charitydatastorage`).
 - [x] Add containers for `raw`, `curated`, and `presentation` layers.
 - [x] Upload generated data to the `raw` container.
-- [ ] Set up Azure Data Factory for ETL pipelines.
-- [ ] Configure multi-hop data processing pipelines.
+- [x] Set up Azure Data Factory for ETL pipelines.
+- [x] Configure multi-hop data processing pipelines.
 - [ ] Set up Azure Synapse Analytics or Azure SQL for final data storage.
 - [ ] Create Power BI reports for data visualization.
