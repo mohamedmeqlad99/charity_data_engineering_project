@@ -59,3 +59,5 @@ for blob in blob_list:
     os.remove(processed_filename)
 
     print(f"Processed and uploaded: {processed_filename}")
+
+##END of transformations 
