@@ -73,4 +73,10 @@ copy_activity = CopyActivity(
 )
 
 
+pipeline = PipelineResource(activities=[copy_activity])
 
+adf_client.pipelines.create_or_update(
+    resource_group_name, data_factory_name, "TransformAndCopyPipeline", pipeline
+)
+
+print("Pipeline created successfully!")
