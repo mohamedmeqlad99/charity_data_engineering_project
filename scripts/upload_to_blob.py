@@ -1,55 +1,66 @@
-def upload_to_blob_append(local_new_file, blob_subpath, local_temp_path):
-    """
-    Append new data to an existing blob. Downloads existing content if present,
-    appends new data, and uploads the combined result without needing to delete the blob first.
-    Only deletes local temporary files.
-    """
-    if not AZURE_CONN_STR:
-        raise ValueError("AZURE_STORAGE_CONNECTION_STRING is not set in your .env file.")
-    if not os.path.exists(local_new_file):
-        raise FileNotFoundError(f"File does not exist: {local_new_file}")
+import os
+from pathlib import Path
+from datetime import datetime, timezone
+from dotenv import load_dotenv
+from azure.storage.blob import BlobServiceClient
+import hashlib
 
-    blob_service_client = BlobServiceClient.from_connection_string(AZURE_CONN_STR)
-    blob_client = blob_service_client.get_blob_client(container=CONTAINER_NAME, blob=blob_subpath)
+# Load .env
+env_path = Path(__file__).parent / ".env"
+load_dotenv(dotenv_path=env_path)
 
-    # Step 1: Download existing blob if exists
-    existing_content = []
-    try:
-        download_stream = blob_client.download_blob()
-        existing_content = download_stream.readall().decode('utf-8').splitlines()
-        print(f"⬇️ Downloaded existing blob {blob_subpath}")
-    except ResourceNotFoundError:
-        print(f"⚠️ Blob {blob_subpath} does not exist. Will create new.")
+AZURE_CONN_STR = os.getenv("AZURE_STORAGE_CONNECTION_STRING")
+CONTAINER_NAME = os.getenv("CONTAINER_NAME")
+DIR = os.getenv("DIR")
 
-    # Step 2: Read new content
-    with open(local_new_file, "r", encoding='utf-8') as f:
-        new_content = f.read().splitlines()
+if not AZURE_CONN_STR or not CONTAINER_NAME or not DIR:
+    raise ValueError("Missing environment variables. Check .env file.")
 
-    # Step 3: Merge content
-    combined_content = []
-    
-    if existing_content:
-        combined_content.extend(existing_content)
-        # Skip header if it exists in new content
-        if len(new_content) > 1:
-            combined_content.extend(new_content[1:])
-        else:
-            combined_content.extend(new_content)
+blob_service_client = BlobServiceClient.from_connection_string(AZURE_CONN_STR)
+container_client = blob_service_client.get_container_client(CONTAINER_NAME)
+
+def get_md5(content: str) -> str:
+    return hashlib.md5(content.encode("utf-8")).hexdigest()
+
+def upload_to_blob(filepath: str, blob_subpath: str):
+    blob_client = container_client.get_blob_client(blob=blob_subpath)
+
+    with open(filepath, "r", encoding="utf-8") as f:
+        new_data = f.read().strip()
+    new_md5 = get_md5(new_data)
+
+    if blob_client.exists():
+        existing_data = blob_client.download_blob().readall().decode("utf-8").strip()
+        if get_md5(existing_data) == new_md5:
+            print(f"⚠️ Skipped: {filepath} (identical content)")
+            return
+
+        backup_name = f"{blob_subpath.rsplit('.', 1)[0]}_backup_{datetime.now(timezone.utc).strftime('%Y%m%d%H%M%S')}.csv"
+        container_client.upload_blob(backup_name, existing_data.encode("utf-8"))
+
+        merged_data = existing_data + "\n" + new_data
+        blob_client.upload_blob(merged_data.encode("utf-8"), overwrite=True)
+        print(f"🆗 Appended and backed up: {filepath} → {blob_subpath}")
     else:
-        combined_content = new_content
+        with open(filepath, "rb") as f:
+            blob_client.upload_blob(f)
+        print(f"✅ Uploaded new: {filepath} → {blob_subpath}")
 
-    # Step 4: Create temp file with merged content
-    with open(local_temp_path, "w", encoding='utf-8') as f:
-        f.write('\n'.join(combined_content))
+    log_blob = container_client.get_blob_client("upload_logs/log.txt")
+    log_entry = f"[{datetime.now(timezone.utc).isoformat()}] Uploaded: {blob_subpath}\n"
 
-    # Step 5: Upload directly with overwrite=True (no need to delete first)
-    with open(local_temp_path, "rb") as data:
-        blob_client.upload_blob(data, overwrite=True)
-    print(f"✅ Uploaded combined CSV to {blob_subpath}")
+    if log_blob.exists():
+        existing_log = log_blob.download_blob().readall().decode("utf-8")
+        log_blob.upload_blob(existing_log + log_entry, overwrite=True)
+    else:
+        log_blob.upload_blob(log_entry)
 
-    # Step 6: Clean up local files only
-    try:
-        os.remove(local_new_file)
-        print(f"🧹 Deleted local file: {local_new_file}")
-    except OSError as e:
-        print(f"⚠️ Could not delete local file {local_new_file}: {e}")
+def upload_directory(data_dir: str):
+    for filename in os.listdir(data_dir):
+        if filename.endswith(".csv"):
+            local_path = os.path.join(data_dir, filename)
+            blob_path = f"{filename.split('.')[0]}/{filename}"
+            upload_to_blob(local_path, blob_path)
+
+if __name__ == "__main__":
+    upload_directory(DIR)
