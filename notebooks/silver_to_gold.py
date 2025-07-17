@@ -25,13 +25,16 @@ blob_base_path = f"wasbs://{CONTAINER_NAME}@{AZURE_STORAGE_ACCOUNT_NAME}.blob.co
 silver_path = f"{blob_base_path}/silver"
 gold_path = f"{blob_base_path}/gold"
 
-# Read silver data
+# Read silver tables
 donations = spark.read.parquet(f"{silver_path}/donations")
 projects = spark.read.parquet(f"{silver_path}/projects")
 volunteer_shifts = spark.read.parquet(f"{silver_path}/volunteer_shifts")
+campaigns = spark.read.parquet(f"{silver_path}/campaigns")
+volunteers = spark.read.parquet(f"{silver_path}/volunteers")
+beneficiaries = spark.read.parquet(f"{silver_path}/beneficiaries")
+transactions = spark.read.parquet(f"{silver_path}/transactions")
 
-# Process data to create gold layer
-# Calculate total donations and count per project
+# Aggregation 1: Total donations per project
 donations_per_project = donations.join(projects, "project_id") \
     .groupBy("project_id", "project_name") \
     .agg(
@@ -39,11 +42,23 @@ donations_per_project = donations.join(projects, "project_id") \
         count("*").alias("donation_count")
     )
 
-# Calculate total volunteer hours per project
+# Aggregation 2: Total volunteer hours per project
 volunteer_hours = volunteer_shifts.join(projects, "project_id") \
-    .withColumn("hours", (datediff(col("end_time"), col("start_time")) * 24 + hour(col("end_time")) - hour(col("start_time")))) \
     .groupBy("project_id", "project_name") \
-    .agg(sum("hours").alias("total_hours"))
+    .agg(sum("shift_duration_hours").alias("total_hours"))
+
+# Aggregation 3: Donations by region
+donations_by_region = donations.join(projects, "project_id") \
+    .groupBy("region") \
+    .agg(
+        sum("amount").alias("total_donations"),
+        count("*").alias("donation_count")
+    )
+
+
+
+
+
 
 # Write processed data to gold layer
 donations_per_project.write.mode("overwrite").parquet(f"{gold_path}/donations_per_project")
