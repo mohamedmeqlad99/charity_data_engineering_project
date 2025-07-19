@@ -55,7 +55,13 @@ donations_by_region = donations.join(projects, "project_id") \
         count("*").alias("donation_count")
     )
 
-
+# Aggregation 3: Donations by region
+donations_by_region = donations.join(projects, "project_id") \
+    .groupBy("region") \
+    .agg(
+        sum("amount").alias("total_donations"),
+        count("*").alias("donation_count")
+    )
 
 
 
