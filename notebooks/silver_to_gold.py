@@ -63,7 +63,14 @@ donations_by_region = donations.join(projects, "project_id") \
         count("*").alias("donation_count")
     )
 
-
+#Aggregation 4: Campaign performance
+campaign_performance = donations.join(campaigns, "campaign_id") \
+    .groupBy("campaign_id", "title", "target_amount") \
+    .agg(
+        sum("amount").alias("total_donations"),
+        count("*").alias("donation_count")
+    ) \
+    .withColumn("percent_target_achieved", round((col("total_donations") / col("target_amount")) * 100, 2))
 
 
 # Write processed data to gold layer
