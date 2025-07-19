@@ -72,6 +72,14 @@ campaign_performance = donations.join(campaigns, "campaign_id") \
     ) \
     .withColumn("percent_target_achieved", round((col("total_donations") / col("target_amount")) * 100, 2))
 
+# Aggregation 5: Donor activity
+donor_activity = donations.groupBy("donor_id", "donor_name") \
+    .agg(
+        sum("amount").alias("total_donations"),
+        count("*").alias("donation_count")
+    ) \
+    .orderBy(col("total_donations").desc())
+
 
 # Write processed data to gold layer
 donations_per_project.write.mode("overwrite").parquet(f"{gold_path}/donations_per_project")
