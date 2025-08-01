@@ -60,3 +60,70 @@ CREATE TABLE dim_region (
     DISTRIBUTION = REPLICATE,
     HEAP
 );
+
+- dim_donor: Stores donor information
+CREATE TABLE dim_donor (
+    donor_id NVARCHAR(36) NOT NULL,
+    donor_name NVARCHAR(100),
+    email NVARCHAR(100),
+    last_contact_date DATETIME,
+    engagement_score INT,
+    CONSTRAINT PK_dim_donor PRIMARY KEY (donor_id)
+) WITH (
+    DISTRIBUTION = REPLICATE,
+    HEAP
+);
+
+-- dim_project: Stores project details, references dim_region
+CREATE TABLE dim_project (
+    project_id NVARCHAR(36) NOT NULL,
+    project_name NVARCHAR(100),
+    region_id NVARCHAR(50),
+    CONSTRAINT PK_dim_project PRIMARY KEY (project_id),
+    CONSTRAINT FK_project_region FOREIGN KEY (region_id) REFERENCES dim_region(region_id)
+) WITH (
+    DISTRIBUTION = REPLICATE,
+    HEAP
+);
+
+-- dim_campaign: Stores campaign details, references dim_project
+CREATE TABLE dim_campaign (
+    campaign_id NVARCHAR(36) NOT NULL,
+    title NVARCHAR(100),
+    project_id NVARCHAR(36),
+    start_date DATE,
+    end_date DATE,
+    target_amount FLOAT,
+    percent_target_achieved FLOAT,
+    CONSTRAINT PK_dim_campaign PRIMARY KEY (campaign_id),
+    CONSTRAINT FK_campaign_project FOREIGN KEY (project_id) REFERENCES dim_project(project_id)
+) WITH (
+    DISTRIBUTION = REPLICATE,
+    HEAP
+);
+
+-- dim_volunteer: Stores volunteer details
+CREATE TABLE dim_volunteer (
+    volunteer_id NVARCHAR(36) NOT NULL,
+    name NVARCHAR(100),
+    age INT,
+    age_group NVARCHAR(20),
+    total_hours FLOAT,
+    CONSTRAINT PK_dim_volunteer PRIMARY KEY (volunteer_id)
+) WITH (
+    DISTRIBUTION = REPLICATE,
+    HEAP
+);
+
+-- dim_beneficiary: Stores beneficiary details, references dim_project
+CREATE TABLE dim_beneficiary (
+    beneficiary_id NVARCHAR(36) NOT NULL,
+    project_id NVARCHAR(36),
+    age INT,
+    aid_type NVARCHAR(50),
+    CONSTRAINT PK_dim_beneficiary PRIMARY KEY (beneficiary_id),
+    CONSTRAINT FK_beneficiary_project FOREIGN KEY (project_id) REFERENCES dim_project(project_id)
+) WITH (
+    DISTRIBUTION = REPLICATE,
+    HEAP
+);
