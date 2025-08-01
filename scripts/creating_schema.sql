@@ -25,3 +25,17 @@ CREATE TABLE fact_donations (
     DISTRIBUTION = HASH(donation_id),
     CLUSTERED COLUMNSTORE INDEX
 );
+
+-- dim_date: Stores date-related attributes for time-based analysis
+CREATE TABLE dim_date (
+    date DATE NOT NULL,
+    year INT,
+    month INT,
+    day INT,
+    month_name VARCHAR(20),
+    quarter INT,
+    CONSTRAINT PK_dim_date PRIMARY KEY (date)
+) WITH (
+    DISTRIBUTION = REPLICATE,
+    HEAP
+);
