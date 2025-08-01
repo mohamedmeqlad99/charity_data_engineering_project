@@ -50,3 +50,13 @@ CREATE TABLE dim_payment_provider (
     DISTRIBUTION = REPLICATE,
     HEAP
 );
+
+-- dim_region: Stores region details
+CREATE TABLE dim_region (
+    region_id NVARCHAR(50) NOT NULL,
+    region_name NVARCHAR(50),
+    CONSTRAINT PK_dim_region PRIMARY KEY (region_id)
+) WITH (
+    DISTRIBUTION = REPLICATE,
+    HEAP
+);
