@@ -39,3 +39,14 @@ CREATE TABLE dim_date (
     DISTRIBUTION = REPLICATE,
     HEAP
 );
+
+-- dim_payment_provider: Stores payment provider details
+CREATE TABLE dim_payment_provider (
+    payment_provider_id NVARCHAR(50) NOT NULL,
+    provider_name NVARCHAR(50),
+    success_rate FLOAT,
+    CONSTRAINT PK_dim_payment_provider PRIMARY KEY (payment_provider_id)
+) WITH (
+    DISTRIBUTION = REPLICATE,
+    HEAP
+);
